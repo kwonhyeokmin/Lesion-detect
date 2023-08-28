@@ -1,0 +1,12 @@
+# GRAZPEDWRI-DX dataset https://www.nature.com/articles/s41597-022-01328-z
+
+train: C:/Users/hyeokmin/Downloads/GRAZPEDWRI-DX  # 118287 images
+val: C:/Users/hyeokmin/Downloads/GRAZPEDWRI-DX  # 5000 images
+test: C:/Users/hyeokmin/Downloads/GRAZPEDWRI-DX  # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+
+# number of classes
+nc: 9
+
+# class names
+names: ['boneanomaly', 'bonelesion', 'foreignbody', 'fracture', 'metal',
+        'periostealreaction', 'pronatorsign', 'softtissue', 'text']
