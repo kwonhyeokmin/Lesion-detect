@@ -1,0 +1,15 @@
+train: /workspace/data/bbox/subset/train/1.Datasets
+val: /workspace/data/bbox/subset/test/1.Datasets
+test: /workspace/data/bbox/subset/test/1.Datasets
+
+# number of classes
+nc: 5
+
+# class names
+names: [
+        'Ankle Arthritis',
+        'OLT',
+        'Flatfoot or Cavus',
+        'Accessory Navicular',
+        'Tarsal Coalition',
+        ]

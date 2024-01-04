@@ -1,0 +1,3 @@
+python3 -u train.py --workers 16 --device 0,1,2,3 --batch-size 32 --data data/nia.yaml --img 400 400 --cfg cfg/training/yolov7.yaml --weights '' --name lesin-sample-COR --hyp data/hyp.scratch.p5.yaml
+python3 -u train.py --workers 16 --device 0,1,2,3 --batch-size 32 --data data/nia.yaml --img 400 400 --cfg cfg/training/yolov7.yaml --weights '' --name lesin-sample-SEG --hyp data/hyp.scratch.p5.yaml
+python3 -u train.py --workers 16 --device 0,1,2,3 --batch-size 32 --data data/nia.yaml --img 400 400 --cfg cfg/training/yolov7.yaml --weights '' --name lesin-sample-AXL --hyp data/hyp.scratch.p5.yaml

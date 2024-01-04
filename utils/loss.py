@@ -581,6 +581,8 @@ class ComputeLossOTA:
 
     def __call__(self, p, targets, imgs):  # predictions, targets, model   
         device = targets.device
+        # print('targets: ', targets)
+        # print('targets shape: ', targets.shape)
         lcls, lbox, lobj = torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device)
         bs, as_, gjs, gis, targets, anchors = self.build_targets(p, targets, imgs)
         pre_gen_gains = [torch.tensor(pp.shape, device=device)[[3, 2, 3, 2]] for pp in p] 

@@ -14,3 +14,8 @@ pip install -r requirements.txt
 ```shell
 python3 train.py --workers 8 --device 0 --batch-size 32 --data data/grazpedwri.yaml --img 640 640 --cfg cfg/training/yolov7.yaml --weights '' --name lesin-yolov7 --hyp data/hyp.scratch.p5.yaml
 ```
+
+## test
+```shell
+python3 test.py --data data/nia.yaml --img 400 --batch 32 --conf 0.001 --iou 0.65 --device 0 --weights best.pt --name lesin-test
+```
