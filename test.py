@@ -97,11 +97,18 @@ def test(data,
     confusion_matrix = ConfusionMatrix(nc=nc)
     names = {k: v for k, v in enumerate(model.names if hasattr(model, 'names') else model.module.names)}
     coco91class = coco80_to_coco91_class()
-    s = ('%20s' + '%12s' * 6) % ('Class', 'Images', 'Labels', 'P', 'R', 'mAP@.5', 'mAP@.5:.95')
+    # s = ('%20s' + '%12s' * 6) % ('Class', 'Images', 'Labels', 'P', 'R', 'mAP@.5', 'mAP@.5:.95')
+    s = ('%5s'+ '%45s' + '%10s' * 3 + '%12s' * 8) % ('No', 'DataID', 'Cls(GT)', 'Cls(PR)', 'Conf', 'TP', 'TN', 'FP', 'FN', 'sTP', 'sFP', 'P', 'R')
+    print(s)
     p, r, f1, mp, mr, map50, map, t0, t1 = 0., 0., 0., 0., 0., 0., 0., 0., 0.
+    data_ids = []
     loss = torch.zeros(3, device=device)
     jdict, stats, ap, ap_class, wandb_images = [], [], [], [], []
-    for batch_i, (img, targets, paths, shapes) in enumerate(tqdm(dataloader, desc=s)):
+    # for batch_i, (img, targets, paths, shapes) in enumerate(tqdm(dataloader, desc=s)):
+    cnt = 0
+    outs = 0
+    etc = 0
+    for batch_i, (img, targets, paths, shapes) in enumerate(dataloader):
         img = img.to(device, non_blocking=True)
         img = img.half() if half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -126,15 +133,23 @@ def test(data,
             t1 += time_synchronized() - t
 
         # Statistics per image
+        outs += len(out)
         for si, pred in enumerate(out):
             labels = targets[targets[:, 0] == si, 1:]
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
             path = Path(paths[si])
+            data_ids.append((os.path.basename(path).replace('.dcm', ''),))
             seen += 1
-
             if len(pred) == 0:
                 if nl:
+                    print(('%5s' + '%45s' + '%10s' * 3 + '%12s' * 8) % (
+                        etc, os.path.basename(path).replace('.dcm', ''),
+                        int(tcls[0]), int(-1), round(0, 2),
+                        0, 0, 0, 0,
+                        0, 0,
+                        0,0))
+                    etc += 1
                     stats.append((torch.zeros(0, niou, dtype=torch.bool), torch.Tensor(), torch.Tensor(), tcls))
                 continue
 
@@ -210,7 +225,7 @@ def test(data,
 
             # Append statistics (correct, conf, pcls, tcls)
             stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))
-
+            cnt += len(tcls)
         # Plot images
         if plots and batch_i < 3:
             f = save_dir / f'test_batch{batch_i}_labels.jpg'  # labels
@@ -220,8 +235,10 @@ def test(data,
 
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
+    data_ids = np.concatenate(data_ids, 0)
+
     if len(stats) and stats[0].any():
-        p, r, ap, f1, ap_class = ap_per_class(*stats, plot=plots, v5_metric=v5_metric, save_dir=save_dir, names=names)
+        p, r, ap, f1, ap_class = ap_per_class(*stats, plot=plots, v5_metric=v5_metric, save_dir=save_dir, names=names, data_ids=data_ids, start_no=etc)
         ap50, ap = ap[:, 0], ap.mean(1)  # AP@0.5, AP@0.5:0.95
         mp, mr, map50, map = p.mean(), r.mean(), ap50.mean(), ap.mean()
         nt = np.bincount(stats[3].astype(np.int64), minlength=nc)  # number of targets per class
@@ -229,6 +246,8 @@ def test(data,
         nt = torch.zeros(1)
 
     # Print results
+    s = ('%20s' + '%12s' * 6) % ('Class', 'Images', 'Labels', 'P', 'R', 'mAP@.5', 'mAP@.5:.95')
+    print(s)
     pf = '%20s' + '%12i' * 2 + '%12.3g' * 4  # print format
     print(pf % ('all', seen, nt.sum(), mp, mr, map50, map))
 

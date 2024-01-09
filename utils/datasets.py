@@ -94,7 +94,7 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
             sampler = torch.utils.data.distributed.DistributedSampler(dataset) if rank != -1 else None
 
         elif 'nia' in opt.data:
-            from catalyst.data.sampler import DistributedSamplerWrapper
+            # from catalyst.data.sampler import DistributedSamplerWrapper
             dataset = NIADataset(path, imgsz, batch_size,
                                  augment=augment,  # augment images
                                  hyp=hyp,  # augmentation hyperparameters
@@ -568,13 +568,13 @@ class NIADataset(Dataset):  # for training/testing
                 _a_n.update({self.class_name[cls_idx]: 0})
             else:
                 _a_n[self.class_name[cls_idx]] += 1
-        total = 0
-        for i, (k,v) in enumerate(_a_n.items()):
-            print(f'{k}: {v}')
-            self.cls_weight[i] = v
-            total += v
-        self.cls_weight = [total/x for x in self.cls_weight]
-        print()
+        # total = 0
+        # for i, (k,v) in enumerate(_a_n.items()):
+        #     print(f'{k}: {v}')
+        #     self.cls_weight[i] = v
+        #     total += v
+        # self.cls_weight = [total/x for x in self.cls_weight]
+        # print()
 
         if single_cls:
             for x in self.labels:

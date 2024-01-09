@@ -15,7 +15,7 @@ def fitness(x):
     return (x[:, :4] * w).sum(1)
 
 
-def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, save_dir='.', names=()):
+def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, save_dir='.', names=(), data_ids=None, start_no=0):
     """ Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
@@ -28,15 +28,30 @@ def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, sa
     # Returns
         The average precision as computed in py-faster-rcnn.
     """
-
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
 
+    fp = (1 - tp)
+    tpc,fpc = 0,0
+    if data_ids is not None:
+        data_ids = data_ids[i]
+        gt_cls = target_cls[i]
+        std_iou = 5
+        for idx, (_data_id, _gt_cls, _p_cls, _conf, _tp, _fp) in enumerate(zip(data_ids, gt_cls, pred_cls, conf, tp, fp)):
+            precision = _tp[std_iou] / (_tp[std_iou] + _fp[std_iou])  # precision curve
+            recall = _tp[std_iou] / (_tp[std_iou] + 1e-16)  # recall curve
+            tpc += _tp[std_iou]
+            fpc += _fp[std_iou]
+            print(('%5s' + '%45s' + '%10s' * 3 + '%12s' * 8) % (
+                    idx+start_no, _data_id,
+                    int(_gt_cls), int(_p_cls), round(_conf, 2),
+                    int(_tp[std_iou]), 0, int(_fp[std_iou]), 0,
+                    round(tpc, 2), round(fpc, 2),
+                    precision, recall))
     # Find unique classes
     unique_classes = np.unique(target_cls)
     nc = unique_classes.shape[0]  # number of classes, number of detections
-
     # Create Precision-Recall curve and compute AP for each class
     px, py = np.linspace(0, 1, 1000), []  # for plotting
     ap, p, r = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
